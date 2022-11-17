@@ -2,6 +2,7 @@ import json
 import sys
 import os
 import uuid
+from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
 class QuestionForm:
@@ -9,13 +10,22 @@ class QuestionForm:
         self.questions = []
         self.sql_request = ''
         self.title = ''
+        self.description = ''
         self.id = str(uuid.uuid1())
+        self.state_group = ''
+
+    def fill_states(self):
+        states = dict()
+        for question in self.questions:
+            states["state_"+question.id] = State()
+        self.state_group = type('StateGroup_'+self.id, (StatesGroup,), states)
 
 
 class Question:
     def __init__(self):
         self.text = ''
         self.answer = ''
+        self.id = ''
 
 
 class QuestionFormEncoder(json.JSONEncoder):
@@ -58,14 +68,18 @@ def dump_form_lib(lib: list, path: str):
         json.dump(cur_form, lib_file, cls=QuestionFormEncoder, ensure_ascii=False)
         lib_file.close()
 
+# ################ tests
 
 def test_1():
     qf = QuestionForm()
     qf.sql_request = "SELECT 'hello world'"
+    qf.description = 'описание тестовой формы'
     qf.title = 'тестовая форма'
     q = Question()
     q.text = 'Ultimate Question of Life, the Universe, and Everything'
     q.answer = '42'
+    q.id = 'question_1'
+
     qf.questions.append(q)
     file = open('test/questions.json', 'w', encoding="utf-8")
     json.dump(qf, file, cls=QuestionFormEncoder, ensure_ascii=False)
@@ -95,6 +109,7 @@ def test_2():
     q = Question()
     q.text = 'Ultimate Question of Life, the Universe, and Everything'
     q.answer = '42'
+    q.id = 'question_1'
     qf.questions.append(q)
     test_lib.append(qf)
     dump_form_lib(test_lib, 'test/lib')
@@ -109,7 +124,6 @@ def test_2():
         f = os.path.join('test/lib', filename)
         os.remove(f)
     os.rmdir('test/lib')
-
 
     if str1 == str2:
         print('test 2 ok')

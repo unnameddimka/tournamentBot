@@ -31,7 +31,12 @@ mydb = mysql.connector.connect(**db_config)
 
 mycursor = mydb.cursor()
 
-Qforms = []
+form_library = questions.load_form_lib('forms')
+
+for form in form_library:
+    form.fill_states()
+
+
 
 
 # States
@@ -107,9 +112,6 @@ async def list_players(message: types.Message):
     mycursor.execute("SELECT * FROM player")
     result = mycursor.fetchall()
     await message.answer(str(result))
-
-
-
 
 
 async def setup_bot_commands(param):
