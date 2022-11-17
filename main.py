@@ -6,6 +6,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 import configparser
+import questions
 
 config = configparser.ConfigParser()
 config.read('config/config.ini')
@@ -18,7 +19,7 @@ bot = Bot(TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
-config = {
+db_config = {
   'user': config['MYSQL']['user'],
   'password': config['MYSQL']['password'],
   'host': config['MYSQL']['host'],
@@ -26,9 +27,12 @@ config = {
   'raise_on_warnings': True
 }
 
-mydb = mysql.connector.connect(**config)
+mydb = mysql.connector.connect(**db_config)
 
 mycursor = mydb.cursor()
+
+Qforms = []
+
 
 # States
 class Form(StatesGroup):
@@ -103,6 +107,9 @@ async def list_players(message: types.Message):
     mycursor.execute("SELECT * FROM player")
     result = mycursor.fetchall()
     await message.answer(str(result))
+
+
+
 
 
 async def setup_bot_commands(param):
