@@ -13,11 +13,13 @@ class QuestionForm:
         self.description = ''
         self.id = str(uuid.uuid1())
         self.state_group = ''
+        self.command = ''
 
     def fill_states(self):
         states = dict()
         for question in self.questions:
             states["state_"+question.id] = State()
+            question.state = states["state_"+question.id]
         self.state_group = type('StateGroup_'+self.id, (StatesGroup,), states)
 
 
@@ -26,6 +28,8 @@ class Question:
         self.text = ''
         self.answer = ''
         self.id = ''
+        self.state = ''
+        self.next_id = ''
 
 
 class QuestionFormEncoder(json.JSONEncoder):
@@ -53,7 +57,6 @@ def load_form_lib(path):
         f = os.path.join(path, filename)
         lib_file = open(f, 'r', encoding="utf-8")
         cur_form = json.load(lib_file, object_hook=question_form_hook)
-        cur_form.id = filename
         form_lib.append(cur_form)
     return form_lib
 
@@ -70,11 +73,13 @@ def dump_form_lib(lib: list, path: str):
 
 # ################ tests
 
+
 def test_1():
     qf = QuestionForm()
     qf.sql_request = "SELECT 'hello world'"
     qf.description = 'описание тестовой формы'
     qf.title = 'тестовая форма'
+    qf.command = 'start'
     q = Question()
     q.text = 'Ultimate Question of Life, the Universe, and Everything'
     q.answer = '42'

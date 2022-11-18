@@ -33,10 +33,45 @@ mycursor = mydb.cursor()
 
 form_library = questions.load_form_lib('forms')
 
+
+async def mess_handler(message: types.Message, raw_state: str):
+    print('handler_starteddd!!!')
+    print(raw_state)
+    # searching for state
+    for frm in form_library:
+        found_questions = [q for q in frm.questions if q.state.state == raw_state]
+        if len(found_questions) == 0:
+            continue  # not found
+        # found searching question by state
+        found_questions[0].answer = message.text
+        next_q = [q for q in frm.questions if q.id == found_questions[0].next_id]
+        if len(next_q) != 0:
+            # asking next question
+            await next_q[0].state.set()
+            await message.answer(next_q[0].text)
+        else:
+            # last question
+            await State.set(State())
+            print('last question reached. Saving data will be here.')
+        print("form:" + str(frm.__dict__) )
+
+
+async def command_handler(message: types.Message):
+    # searching for a form to start
+    cur_form = [frm for frm in form_library if '/' + frm.command == message.text][0]
+    # explaining the form.
+    await message.reply(cur_form.title)
+    await message.answer(cur_form.description)
+    # asking first question
+    await cur_form.questions[0].state.set()
+    await message.answer(cur_form.questions[0].text)
+    print(f'form "{cur_form.id}" started.')
+
+
 for form in form_library:
     form.fill_states()
-
-
+    dp.register_message_handler(mess_handler, state=form.state_group)
+    dp.register_message_handler(command_handler, commands=form.command)
 
 
 # States
@@ -45,52 +80,6 @@ class Form(StatesGroup):
     country = State()  # Will be represented in storage as 'Form:age'
     rank = State()  # Will be represented in storage as 'Form:rank'
     save = State()  # saving data
-
-
-@dp.message_handler(state='*', commands=['register'])
-async def start_handler(message: types.Message):
-    user_id = message.from_user.id
-    user_full_name = message.from_user.full_name
-    logging.info(f"{user_id}:{user_full_name} {time.asctime()}")
-    # Set state
-    await Form.name.set()
-    await message.reply("Реєстрація у системі\n"
-                        "Поки що бот тільки збирає інформацію.\n"
-                        "Надана інформація використовуватиметься з тестовую метою та не буде росповсюджена.")
-    await message.answer("Введіть ваше ім'я.")
-
-
-@dp.message_handler(state='*', commands=['start'])
-async def start_handler(message: types.Message):
-
-    user_id = message.from_user.id
-    user_full_name = message.from_user.full_name
-    logging.info(f"{user_id}:{user_full_name} {time.asctime()}")
-    await message.reply("Цей бот коли небудь у чудовій квітучій Україні майбутнього буде працювати з гравцями в ґо та "
-                        "проводити турніри. \nСлава Україні! ")
-
-
-@dp.message_handler(state=Form.name)
-async def process_name(message: types.Message, state: FSMContext):
-    """
-    Process user name
-    """
-    async with state.proxy() as data:
-        data['name'] = message.text
-
-    await Form.next()
-    await message.answer("З якої ви країни?")
-
-
-@dp.message_handler(state=Form.country)
-async def process_name(message: types.Message, state: FSMContext):
-    """
-    Process user country
-    """
-    async with state.proxy() as data:
-        data['country'] = message.text
-    await Form.next()
-    await message.answer("Який ваш ранг? (наприклад 10k, 4d, 9p)")
 
 
 @dp.message_handler(state=Form.rank)
@@ -115,10 +104,8 @@ async def list_players(message: types.Message):
 
 
 async def setup_bot_commands(param):
-    bot_commands = [
-        types.BotCommand(command="/start", description="Початкове привітання"),
-        types.BotCommand(command="/register", description="Реєстрація козака"),
-    ]
+    bot_commands = [types.BotCommand(command="/"+frm.command, description=frm.title) for frm in form_library]
+    bot_commands.append(types.BotCommand(command="/start", description="Початкове привітання"))
     await bot.set_my_commands(bot_commands)
 
 

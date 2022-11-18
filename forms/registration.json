@@ -3,21 +3,25 @@
         {
 			"id": "name",
 			"text": "Введіть ваше ім'я.",
-			"answer": "42"
+			"answer": "42",
+			"next_id": "country"
 		},
 		{
 			"id": "country",
 			"text": "З якої ви країни?",
-			"answer": "42"
+			"answer": "42",
+			"next_id": "rank"
 		},
         {
 			"id": "rank",
 			"text": "Який ваш ранг? (наприклад 10k, 4d, 9p)",
-			"answer": "42"
+			"answer": "42",
+			"next_id": null
 		}
 	],
 	"sql_request": "CALL setPlayer (%s,%s,%s,%s)",
 	"title": "Реєстрація козака",
 	"description": "Реєстрація у системі\nПоки що бот тільки збирає інформацію.\nНадана інформація використовуватиметься з тестовую метою та не буде росповсюджена.",
-	"id": "registration"
+	"id": "registration",
+	"command": "register"
 }
