@@ -59,8 +59,7 @@ async def mess_handler(message: types.Message, raw_state: str, state: FSMContext
                 for q in frm.questions:
                     params = params + (data[q.id],)
 
-                mycursor.execute("CALL setPlayer (%s,%s,%s,%s)",
-                                     params)
+                mycursor.execute("CALL setPlayer (%s,%s,%s,%s)", params)
                 mydb.commit()
             print('last question reached. Data saved.')
         print("form:" + str(frm.__dict__) )

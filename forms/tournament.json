@@ -1,0 +1,22 @@
+{
+	"questions": [
+        {
+			"id": "name",
+			"text": "Введіть назву турніру",
+			"answer": "42",
+			"next_id": "description"
+		},
+
+        {
+			"id": "description",
+			"text": "Введіть опис турніру",
+			"answer": "42",
+			"next_id": null
+		}
+	],
+	"sql_request": "SELECT 'hello world'",
+	"title": "Реєстрація турніру",
+	"description": "Реєстрація турніру у системі\nПоки що бот тільки збирає інформацію.\nНадана інформація використовуватиметься з тестовую метою та не буде росповсюджена.",
+	"id": "tournament",
+	"command": "tournament"
+}
