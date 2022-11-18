@@ -34,7 +34,7 @@ mycursor = mydb.cursor()
 form_library = questions.load_form_lib('forms')
 
 
-async def mess_handler(message: types.Message, raw_state: str):
+async def mess_handler(message: types.Message, raw_state: str, state: FSMContext):
     print('handler_starteddd!!!')
     print(raw_state)
     # searching for state
@@ -43,7 +43,8 @@ async def mess_handler(message: types.Message, raw_state: str):
         if len(found_questions) == 0:
             continue  # not found
         # found searching question by state
-        found_questions[0].answer = message.text
+        async with state.proxy() as data:
+            data[found_questions[0].id] = message.text
         next_q = [q for q in frm.questions if q.id == found_questions[0].next_id]
         if len(next_q) != 0:
             # asking next question
@@ -52,7 +53,16 @@ async def mess_handler(message: types.Message, raw_state: str):
         else:
             # last question
             await State.set(State())
-            print('last question reached. Saving data will be here.')
+            params = (message.from_user.id,)
+
+            async with state.proxy() as data:
+                for q in frm.questions:
+                    params = params + (data[q.id],)
+
+                mycursor.execute("CALL setPlayer (%s,%s,%s,%s)",
+                                     params)
+                mydb.commit()
+            print('last question reached. Data saved.')
         print("form:" + str(frm.__dict__) )
 
 
@@ -72,28 +82,6 @@ for form in form_library:
     form.fill_states()
     dp.register_message_handler(mess_handler, state=form.state_group)
     dp.register_message_handler(command_handler, commands=form.command)
-
-
-# States
-class Form(StatesGroup):
-    name = State()  # Will be represented in storage as 'Form:name'
-    country = State()  # Will be represented in storage as 'Form:age'
-    rank = State()  # Will be represented in storage as 'Form:rank'
-    save = State()  # saving data
-
-
-@dp.message_handler(state=Form.rank)
-async def process_name(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['rank'] = message.text
-        await message.answer(f"Дякую. Про вас зібрані наступні дані {data.values()}")
-        mycursor.execute("CALL setPlayer (%s,%s,%s,%s)",
-                         (message.from_user.id,
-                          data['name'],
-                          data['country'],
-                          data['rank']
-                          ))
-        mydb.commit()
 
 
 @dp.message_handler(state='*', commands=['list'])
