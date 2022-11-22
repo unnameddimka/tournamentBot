@@ -14,9 +14,10 @@
 			"next_id": null
 		}
 	],
-	"sql_request": "SELECT 'hello world'",
+	"sql_request": "CALL setTournament (%s,%s,%s)",
 	"title": "Реєстрація турніру",
 	"description": "Реєстрація турніру у системі\nПоки що бот тільки збирає інформацію.\nНадана інформація використовуватиметься з тестовую метою та не буде росповсюджена.",
 	"id": "tournament",
-	"command": "tournament"
+	"command": "tournament",
+	"footer": "Дякуємо. Новий турнір створено. Дані збережено."
 }

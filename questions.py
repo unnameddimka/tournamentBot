@@ -14,6 +14,7 @@ class QuestionForm:
         self.id = str(uuid.uuid1())
         self.state_group = ''
         self.command = ''
+        self.footer = ''
 
     def fill_states(self):
         states = dict()
@@ -30,6 +31,7 @@ class Question:
         self.id = ''
         self.state = ''
         self.next_id = ''
+        self.data_request = ''
 
 
 class QuestionFormEncoder(json.JSONEncoder):
@@ -80,10 +82,12 @@ def test_1():
     qf.description = 'описание тестовой формы'
     qf.title = 'тестовая форма'
     qf.command = 'start'
+    qf.footer = 'Спасибо за ваши ответы.'
     q = Question()
     q.text = 'Ultimate Question of Life, the Universe, and Everything'
     q.answer = '42'
     q.id = 'question_1'
+    q.data_request = "SELECT 'hello world'"
 
     qf.questions.append(q)
     file = open('test/questions.json', 'w', encoding="utf-8")

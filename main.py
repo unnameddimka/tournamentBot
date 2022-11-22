@@ -29,9 +29,28 @@ db_config = {
 
 mydb = mysql.connector.connect(**db_config)
 
-mycursor = mydb.cursor()
+
 
 form_library = questions.load_form_lib('forms')
+
+
+def get_table_for_message(request:str):
+    mycursor = mydb.cursor()
+    mycursor.execute(request)
+    myresult = mycursor.fetchall()
+
+    reply = ''
+    for row in myresult:
+        reply = reply + f'{row[0]} -- <b>{row[1]}</b>: {row[2]}\n'
+    return reply
+
+
+async def ask_question(message: types.Message, quest: questions.Question):
+    await quest.state.set()
+    await message.answer(quest.text)
+    if 'data_request' in quest.__dict__.keys():
+        # we have data request in question. executing.
+        await message.answer(get_table_for_message(quest.data_request), parse_mode='HTML')
 
 
 async def mess_handler(message: types.Message, raw_state: str, state: FSMContext):
@@ -48,8 +67,7 @@ async def mess_handler(message: types.Message, raw_state: str, state: FSMContext
         next_q = [q for q in frm.questions if q.id == found_questions[0].next_id]
         if len(next_q) != 0:
             # asking next question
-            await next_q[0].state.set()
-            await message.answer(next_q[0].text)
+            await ask_question(message, next_q[0])
         else:
             # last question
             await State.set(State())
@@ -58,11 +76,12 @@ async def mess_handler(message: types.Message, raw_state: str, state: FSMContext
             async with state.proxy() as data:
                 for q in frm.questions:
                     params = params + (data[q.id],)
-
-                mycursor.execute("CALL setPlayer (%s,%s,%s,%s)", params)
+                mycursor = mydb.cursor()
+                mycursor.execute(frm.sql_request, params)
                 mydb.commit()
+            await message.answer(frm.footer)
             print('last question reached. Data saved.')
-        print("form:" + str(frm.__dict__) )
+        print("form:" + str(frm.__dict__))
 
 
 async def command_handler(message: types.Message):
@@ -72,9 +91,7 @@ async def command_handler(message: types.Message):
     await message.reply(cur_form.title)
     await message.answer(cur_form.description)
     # asking first question
-    await cur_form.questions[0].state.set()
-    await message.answer(cur_form.questions[0].text)
-    print(f'form "{cur_form.id}" started.')
+    await ask_question(message, cur_form.questions[0])
 
 
 for form in form_library:
@@ -85,6 +102,7 @@ for form in form_library:
 
 @dp.message_handler(state='*', commands=['list'])
 async def list_players(message: types.Message):
+    mycursor = mydb.cursor()
     mycursor.execute("SELECT * FROM player")
     result = mycursor.fetchall()
     await message.answer(str(result))
