@@ -1,0 +1,8 @@
+{
+	"request": "SELECT * FROM player",
+	"params": [
+	],
+	"string_template": "{0} -- {1} -- {2} -- {3}",
+	"command": "list",
+	"title": "Список зареєстрованих гравців"
+}
