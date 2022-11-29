@@ -1,0 +1,26 @@
+{
+	"questions": [
+        {
+			"id": "tourn_id",
+			"text": "Введіть номер турніру у таблиці, щоб переглянути турнірну таблицю.",
+			"answer": "42",
+			"data_request": "SELECT * FROM tournament",
+			"next_id": "t_table",
+			"data_view": "t_list"
+		},
+
+        {
+			"id": "t_table",
+			"text": "Турнірна таблиця",
+			"answer": "42",
+			"next_id": null,
+			"data_view": "t_table"
+		}
+	],
+	"sql_request": "select %s,%s",
+	"title": "Турнірна таблиця",
+	"description": "Перегляд турнірної таблиці.",
+	"id": "t_table",
+	"command": "t_table",
+	"footer": "Дякуємо. Новий турнір створено. Дані збережено."
+}

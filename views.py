@@ -7,13 +7,17 @@ import os
 class DataView:
     def __init__(self):
         self.request = ''
-        self.params = tuple()
+        self.param_src = []  # source of parameter data. ID of some previous question in the form.
+        self.params = tuple()  # parameter data itself.
         self.string_template = ''
         self.command = ''
         self.title = ''
+        self.id = ''
 
     def fetch_data(self):
         cursor = data.exec_request(self.request, self.params)
+        if len(cursor) == 0:
+            return '-------------'
         result = [self.string_template.format(*row) for row in cursor]
         return result
 
@@ -48,6 +52,8 @@ def test_1():
     dw.params = ('hello world',)
     dw.string_template = 'test {0}'
     dw.command = 'test'
+    dw.param_src = ["test param"]
+    dw.id = 'test'
     dw.title = 'тестовая вьюха'
     file = open('test/view.json', 'w', encoding="utf-8")
     json.dump(dw, file, cls=DataViewEncoder, ensure_ascii=False)

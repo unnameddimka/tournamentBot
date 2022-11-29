@@ -5,7 +5,8 @@
 			"text": "Введіть номер турніру у таблиці, щоб зареєструвати участь.",
 			"answer": "42",
 			"data_request": "SELECT * FROM tournament",
-			"next_id": null
+			"next_id": null,
+			"data_view": "t_list"
 		}
 	],
 	"sql_request": "CALL setParticipant (%s,%s)",

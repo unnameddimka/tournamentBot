@@ -1,10 +1,9 @@
 import time
 import logging
-import mysql.connector
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.dispatcher.filters.state import State
 import configparser
 import questions
 import data
@@ -25,20 +24,21 @@ form_library = questions.load_form_lib('forms')
 view_library = views.load_form_lib('data_views')
 
 
-def get_table_for_message(request: str):
-    myresult = data.exec_request(request)
-    reply = ''
-    for row in myresult:
-        reply = reply + f'{row[0]} -- <b>{row[1]}</b>: {row[2]}\n'
-    return reply
-
-
-async def ask_question(message: types.Message, quest: questions.Question):
+async def ask_question(message: types.Message, quest: questions.Question, state: FSMContext):
     await quest.state.set()
     await message.answer(quest.text)
-    if 'data_request' in quest.__dict__.keys():
-        # we have data request in question. executing.
-        await message.answer(get_table_for_message(quest.data_request), parse_mode='HTML')
+    if 'data_view' in quest.__dict__.keys():
+        found_views = [frm for frm in view_library if frm.id == quest.data_view]
+        if len(found_views) > 0:
+            cur_view: views.DataView = found_views[0]
+            if 'param_src' in cur_view.__dict__.keys():
+                if len(cur_view.param_src) > 0:  # filling parameters
+                    cur_view.params = tuple()
+                    for src in cur_view.param_src:
+                        async with state.proxy() as tg_data:
+                            cur_view.params = cur_view.params + (tg_data[src],)
+            strs = cur_view.fetch_data()
+            await message.answer('\n'.join(strs), parse_mode='HTML')
 
 
 async def mess_handler(message: types.Message, raw_state: str, state: FSMContext):
@@ -55,7 +55,7 @@ async def mess_handler(message: types.Message, raw_state: str, state: FSMContext
         next_q = [q for q in frm.questions if q.id == found_questions[0].next_id]
         if len(next_q) != 0:
             # asking next question
-            await ask_question(message, next_q[0])
+            await ask_question(message, next_q[0], state)
         else:
             # last question
             await State.set(State())
@@ -70,7 +70,7 @@ async def mess_handler(message: types.Message, raw_state: str, state: FSMContext
         print("form:" + str(frm.__dict__))
 
 
-async def command_handler(message: types.Message):
+async def command_handler(message: types.Message, state: FSMContext):
     # searching for a form to start
     found_frms = [frm for frm in form_library if '/' + frm.command == message.text]
     found_views = [frm for frm in view_library if '/' + frm.command == message.text]
@@ -79,7 +79,7 @@ async def command_handler(message: types.Message):
         await message.reply(cur_form.title)
         await message.answer(cur_form.description)
         # asking first question
-        await ask_question(message, cur_form.questions[0])
+        await ask_question(message, cur_form.questions[0], state)
     elif len(found_views) > 0:
         cur_view = found_views[0]
         strs = cur_view.fetch_data()

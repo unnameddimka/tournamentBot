@@ -9,6 +9,7 @@ class QuestionForm:
     def __init__(self):
         self.questions = []
         self.sql_request = ''
+        self.data_view = ''
         self.title = ''
         self.description = ''
         self.id = str(uuid.uuid1())
@@ -31,7 +32,7 @@ class Question:
         self.id = ''
         self.state = ''
         self.next_id = ''
-        self.data_request = ''
+        self.data_view = ''
 
 
 class QuestionFormEncoder(json.JSONEncoder):
@@ -87,7 +88,7 @@ def test_1():
     q.text = 'Ultimate Question of Life, the Universe, and Everything'
     q.answer = '42'
     q.id = 'question_1'
-    q.data_request = "SELECT 'hello world'"
+    q.data_view = 'test1'
 
     qf.questions.append(q)
     file = open('test/questions.json', 'w', encoding="utf-8")

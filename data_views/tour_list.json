@@ -1,0 +1,9 @@
+{
+	"request": "SELECT * FROM tournament",
+	"params": [
+	],
+	"string_template": "{0} -- <b>{1}</b> -- {2}",
+	"command": "t_list",
+	"title": "Список зареєстрованих турнірів",
+	"id": "t_list"
+}

@@ -20,7 +20,8 @@ mydb = mysql.connector.connect(**db_config)
 
 def exec_request(req: str, params: tuple = tuple()):
     mycursor = mydb.cursor()
-    mycursor.execute(req, params)
+    t_params = tuple(params)
+    mycursor.execute(req, t_params)
     result = mycursor.fetchall()
     mydb.commit()
     return result

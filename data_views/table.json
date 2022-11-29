@@ -1,0 +1,10 @@
+{
+	"request": "SELECT pl.name\nFROM participant AS pt LEFT JOIN \nplayer AS pl ON pt.player = pl.id \nWHERE tournament = %s",
+	"param_src": ["tourn_id"],
+	"params": [
+	],
+	"string_template": "{0}",
+	"command": "list",
+	"title": "Турнірна таблиця",
+	"id": "t_table"
+}
